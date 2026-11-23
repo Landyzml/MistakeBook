@@ -1,0 +1,16 @@
+node_modules
+dist
+.taste-skill
+playwright-report
+test-results
+*.tsbuildinfo
+# User notebooks, credentials, and machine-specific artifacts never belong in Git.
+*.zip
+*.bak
+*.backup
+.env
+.env.*
+!.env.example
+.openai/
+*.log
+.DS_Store
