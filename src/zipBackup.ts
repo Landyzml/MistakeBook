@@ -118,10 +118,7 @@ export async function readBackup(file: Blob): Promise<Notebook> {
     if (!entry.dir && !referenced.has(entry.name)) fail("备份含有未声明文件");
   return notebook;
 }
-export function downloadZip(
-  bytes: Uint8Array,
-  name = "MistakeBook-backup.zip",
-) {
+export function downloadZip(bytes: Uint8Array, name = "REWISE-backup.zip") {
   const url = URL.createObjectURL(
     new Blob([new Uint8Array(bytes)], { type: "application/zip" }),
   );

@@ -93,7 +93,7 @@ export async function parseBackup(
   const root = obj(JSON.parse(text));
   ensure(
     root.format === "mistakebook" && root.version === 1,
-    "不是受支持的知错备份文件",
+    "不是受支持的 REWISE 备份文件",
   );
   ensure(Array.isArray(root.subjects) && root.subjects.length <= 10000);
   ensure(Array.isArray(root.mistakes) && root.mistakes.length <= 100000);

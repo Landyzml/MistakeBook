@@ -14,5 +14,5 @@ if [[ ! -d node_modules/vite ]]; then
   read -k 1
   exit 1
 fi
-echo '知错正在启动，请在浏览器打开下方地址。关闭此窗口或按 Ctrl+C 停止。'
+echo 'REWISE 正在启动，请在浏览器打开下方地址。关闭此窗口或按 Ctrl+C 停止。'
 exec "$task_node" node_modules/vite/bin/vite.js --host 127.0.0.1

@@ -1,6 +1,14 @@
-# 知错 · MistakeBook 2.0
+# REWISE 3.0
 
 完整中文个人错题本，React + TypeScript + Vite。无账号、无后端、无付费服务。GitHub 仅托管应用源码，个人错题、图片和文件权限全部留在自己的设备中。
+
+## 品牌与界面
+
+REWISE — LEARN FROM EVERY MISTAKE. 深海军蓝、薄荷绿和淡紫色构成完整深色设计系统。原创几何标志把翻开的书、字母 R 和订正对勾合为一体，完整字标也由 SVG 路径绘制，无外部商标或图片素材。
+
+资源位于 `public/brand/`，含 logo、logo-icon、favicon、app-icon 的 SVG 与 PNG。新增全局搜索与快捷录题顶栏、紧凑题目表格、分区编辑器及统一深色弹窗。`src/brand.ts` 处理 GitHub Pages 资源基路径。
+
+数据库仍为 `mistakebook`，数据库版本、键名和 ZIP 内部标识保持原样。仓库及站点地址保留 MistakeBook，以保证现有来源下的数据继续可用。品牌升级不会清空数据库或自动覆盖备份。
 
 ## 开始使用
 
@@ -10,7 +18,7 @@
 
 1. 使用支持 File System Access API 的浏览器，通过 HTTPS 或 localhost 打开应用。
 2. 进入“设置与备份”→“设置电脑保存位置”。
-3. 在系统文件选择窗口选择文件夹及文件名，默认 `MistakeBook-backup.zip`。
+3. 在系统文件选择窗口选择文件夹及文件名，默认 `REWISE-backup.zip`。
 4. 新文件需要确认启用；已有文件会先校验，并让你选择恢复、替换或取消。不会自动覆盖。
 5. 此后每次保存修改，先写入 IndexedDB，约 1.5 秒后同步完整 ZIP。界面显示“已自动保存到电脑”才表示文件写入成功。
 6. 下次打开会从 IndexedDB 读取文件句柄并检查权限，需要时点击“重新授权”。也可“立即保存到电脑”“检查同步状态”或“重新选择保存位置”。
@@ -57,7 +65,7 @@ npm run build
 npm run preview
 ```
 
-当前 Mac 已安装依赖时，可双击 `启动知错.command`。ZIP 源码包不包含 node_modules，首次运行需先安装依赖。
+当前 Mac 已安装依赖时，可双击 `启动 REWISE.command`。ZIP 源码包不包含 node_modules，首次运行需先安装依赖。
 
 浏览器验证：`npm run test:e2e`。默认使用 macOS Chrome Dev，可设置 `PLAYWRIGHT_BASE_URL` 指定预览地址。其他平台将 Playwright 配置中的 `executablePath` 删除并安装 Chromium。
 
@@ -70,7 +78,7 @@ npm run preview
 - `src/fileSync.ts`：防抖串行同步、权限、文件句柄与冲突保护。
 - `src/ComputerStorage.tsx`：电脑文件保存设置与状态。
 - `src/App.tsx`、`components.tsx`、`style.css`：页面、组件及响应式布局。
-- `tests/`：10 项数据测试、5 项浏览器端到端测试。
+- `tests/`：10 项数据测试、6 项浏览器端到端测试。
 - `.github/workflows/pages.yml`：测试、生产构建、GitHub Pages 自动部署。
 
 ## 部署

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import { brandAsset } from "./brand";
 import {
   LayoutDashboard,
   BookOpen,
@@ -101,6 +102,9 @@ function newMistake(subjectId: string): Mistake {
   };
 }
 export default function App() {
+  const [globalSearch, setGlobalSearch] = useState("");
+  const searchIntent = useRef<string | null>(null);
+  const globalInput = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<Notebook>(empty);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -154,7 +158,8 @@ export default function App() {
     const listener = () => {
       setRoute(location.hash.slice(1) || "dashboard");
       setMobile(false);
-      setFilters(initialFilters);
+      setFilters({ ...initialFilters, search: searchIntent.current ?? "" });
+      searchIntent.current = null;
       setDetail(null);
     };
     window.addEventListener("hashchange", listener);
@@ -205,6 +210,25 @@ export default function App() {
         .then(setStorage)
         .catch(() => {});
   }, [route, data]);
+  useEffect(() => {
+    const shortcut = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        globalInput.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, []);
+  function globalSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (route === "mistakes")
+      setFilters({ ...initialFilters, search: globalSearch });
+    else {
+      searchIntent.current = globalSearch;
+      go("mistakes");
+    }
+  }
   function go(r: string) {
     if (r === route) {
       setFilters(initialFilters);
@@ -336,7 +360,7 @@ export default function App() {
         multiple: false,
         types: [
           {
-            description: "知错备份",
+            description: "REWISE 备份",
             accept: {
               "application/zip": [".zip"],
               "application/json": [".json"],
@@ -353,10 +377,10 @@ export default function App() {
   async function selectFile() {
     try {
       const handle = await fileWindow.showSaveFilePicker!({
-        suggestedName: "MistakeBook-backup.zip",
+        suggestedName: "REWISE-backup.zip",
         types: [
           {
-            description: "知错 ZIP 备份",
+            description: "REWISE ZIP 备份",
             accept: { "application/zip": [".zip"] },
           },
         ],
@@ -426,7 +450,7 @@ export default function App() {
         setToast("暂无替换前恢复副本");
         return;
       }
-      downloadZip(await createZip(recovery), "MistakeBook-recovery.zip");
+      downloadZip(await createZip(recovery), "REWISE-recovery.zip");
       setToast("替换前的完整副本已下载");
     } catch (e) {
       setError((e as Error).message);
@@ -506,6 +530,14 @@ export default function App() {
   function rows(ms: Mistake[]) {
     return (
       <div className="mistake-list">
+        <div className="mistake-list-head">
+          <span>题目与知识点</span>
+          <span>科目</span>
+          <span>难度</span>
+          <span>复习状态</span>
+          <span>记录日期</span>
+          <span />
+        </div>
         {ms.map((m) => {
           const s = data.subjects.find((x) => x.id === m.subjectId);
           return (
@@ -534,6 +566,9 @@ export default function App() {
                 <i style={{ background: s?.color }} />
                 {s?.name}
               </span>
+              <span className={`difficulty ${m.difficulty}`}>
+                {difficulties[m.difficulty]}
+              </span>
               <span className={`status ${m.status}`}>{statuses[m.status]}</span>
               <span className="row-date">{date(m.createdAt)}</span>
               <ChevronRight size={16} />
@@ -546,18 +581,18 @@ export default function App() {
   return (
     <div className="app">
       <aside className={mobile ? "sidebar open" : "sidebar"}>
-        <a href="#dashboard" className="brand">
-          <BookMarked size={29} strokeWidth={1.7} />
-          <span>
-            知错<small>个人错题本</small>
-          </span>
+        <a href="#dashboard" className="brand" aria-label="REWISE 首页">
+          <img src={brandAsset("logo.svg")} alt="REWISE" />
+          <span className="brand-tagline">LEARN FROM EVERY MISTAKE.</span>
         </a>
         <div className="workspace">
-          <span className="workspace-symbol">知</span>
+          <img src={brandAsset("logo-icon.svg")} alt="" />
           <div>
-            我的学习空间<small>每一次订正，都是进步</small>
+            个人学习空间<small>专注于你的下一次进步</small>
           </div>
+          <ChevronRight size={14} />
         </div>
+        <span className="nav-caption">学习工作台</span>
         <nav>
           {nav.map(([id, label, Icon]) => (
             <button
@@ -617,9 +652,9 @@ export default function App() {
         </div>
       </aside>
       <div className="mobile-bar">
-        <a href="#dashboard">
-          <BookMarked size={22} />
-          知错
+        <a href="#dashboard" aria-label="REWISE 首页">
+          <img src={brandAsset("logo-icon.svg")} alt="" />
+          REWISE
         </a>
         <button
           className="icon"
@@ -631,24 +666,46 @@ export default function App() {
       </div>
       <main>
         <div className="topline">
-          <span>
-            我的学习空间 <ChevronRight size={14} />{" "}
+          <span className="breadcrumb">
+            <span>学习空间</span>
+            <ChevronRight size={14} />
             {activeSubject?.name || nav.find((x) => x[0] === route)?.[1]}
           </span>
-          <span className="local-note">
-            <ShieldCheck size={14} />
-            {ready
-              ? sync.name
-                ? syncLabels[sync.status]
-                : "已保存到本地数据库"
-              : "正在读取本地数据库"}
-          </span>
+          <form className="global-search" onSubmit={globalSubmit}>
+            <Search size={16} />
+            <input
+              ref={globalInput}
+              aria-label="全局搜索"
+              placeholder="搜索题目、知识点、标签…"
+              value={globalSearch}
+              onChange={(e) => setGlobalSearch(e.target.value)}
+            />
+            <kbd>⌘ K</kbd>
+          </form>
+          <button
+            className="top-add"
+            aria-label="快速记录错题"
+            onClick={add}
+            disabled={!ready}
+          >
+            <Plus size={16} />
+            <span>新增错题</span>
+          </button>
+        </div>
+        <div className="save-strip">
+          <span className={`save-indicator ${sync.status}`} />
+          {ready
+            ? sync.name
+              ? syncLabels[sync.status]
+              : "已保存到本地数据库"
+            : "正在读取本地数据库"}
+          <span className="save-strip-end">私有记录 · 保存在你的设备</span>
         </div>
         <div className="main-inner">
           {!ready ? (
             <Empty
-              title="正在打开错题本"
-              description={error || "正在读取本地学习记录…"}
+              title="正在打开 REWISE"
+              description={error || "你的学习记录，正在回到眼前。"}
             />
           ) : (
             <>
@@ -667,7 +724,7 @@ export default function App() {
                   </h1>
                   <p>
                     {route === "dashboard"
-                      ? "把每一次错误，变成下一次的把握。"
+                      ? "每次回看，都比上次更进一步。"
                       : route === "subjects"
                         ? "按自己的方式，为知识建立秩序。"
                         : route === "review"
@@ -706,10 +763,10 @@ export default function App() {
                 <>
                   <section className="stats">
                     {[
-                      ["学习科目", data.subjects.length, "个自由创建的科目"],
-                      ["累计错题", data.mistakes.length, "道值得重新思考的题"],
-                      ["待复习", pending, "道题等待温故知新"],
-                      ["已掌握", mastered, "道题已转化为收获"],
+                      ["学习科目", data.subjects.length, "按自己的节奏分类"],
+                      ["累计错题", data.mistakes.length, "每一道题，都是积累"],
+                      ["待复习", pending, "今天值得再看一遍"],
+                      ["已掌握", mastered, "理解，正在变得扎实"],
                     ].map(([l, n, t]) => (
                       <div key={l}>
                         <span>{l}</span>
@@ -752,10 +809,26 @@ export default function App() {
                         {pending ? "开始复习" : "记录第一道错题"}
                         <ArrowUpRight size={17} />
                       </button>
-                      <div className="notebook-lines" aria-hidden="true">
-                        <span />
-                        <span />
-                        <span />
+                      <div className="review-progress-summary">
+                        <span>已掌握</span>
+                        <b>
+                          {data.mistakes.length
+                            ? Math.round(
+                                (mastered / data.mistakes.length) * 100,
+                              )
+                            : 0}
+                          %
+                        </b>
+                        <div className="progress">
+                          <span
+                            style={{
+                              width: `${data.mistakes.length ? (mastered / data.mistakes.length) * 100 : 0}%`,
+                            }}
+                          />
+                        </div>
+                        <small>
+                          {mastered} / {data.mistakes.length} 道错题
+                        </small>
                       </div>
                     </section>
                   </div>
@@ -773,8 +846,8 @@ export default function App() {
                       rows(recent)
                     ) : (
                       <Empty
-                        title="你的进步，从这里开始"
-                        description="创建科目，记录第一道错题。每一次认真订正，都算数。"
+                        title="欢迎来到 REWISE"
+                        description="把难住你的题留下，把每一次订正变成下一次的把握。"
                         action={
                           <button onClick={add}>
                             <Plus size={16} />
@@ -784,7 +857,10 @@ export default function App() {
                       />
                     )}
                   </section>
-                  <p className="footer-note">不怕出错，只怕错过成长的机会。</p>
+                  <div className="footer-note">
+                    <span>REWISE</span>
+                    <p>LEARN FROM EVERY MISTAKE.</p>
+                  </div>
                 </>
               )}
               {route === "subjects" && subjectCards()}
@@ -1270,12 +1346,12 @@ export default function App() {
                   </section>
                   <section>
                     <div>
-                      <h2>关于知错</h2>
+                      <h2>关于 REWISE</h2>
                     </div>
                     <div className="settings-panel">
-                      <h3>知错 · 个人错题本</h3>
-                      <p>记录、理解、再出发。</p>
-                      <small>版本 2.0.0 · 让每一次错误都有回响。</small>
+                      <h3>REWISE · 个人数字错题本</h3>
+                      <p>LEARN FROM EVERY MISTAKE.</p>
+                      <small>版本 3.0.0 · 让每一次错误都有回响。</small>
                     </div>
                   </section>
                 </div>
@@ -1811,8 +1887,12 @@ function MistakeEditor({
       wide
       onClose={() => (dirty ? setDiscard(true) : close())}
     >
-      <form onSubmit={submit}>
-        <div className="form-grid">
+      <form className="editor-form" onSubmit={submit}>
+        <p className="editor-intro">
+          把问题留下，也把思考的过程留下。修改仅在点击保存后写入错题本。
+        </p>
+        <section className="editor-section">
+          <h3>题目</h3>
           <label>
             所属科目
             <select
@@ -1828,104 +1908,119 @@ function MistakeEditor({
             </select>
           </label>
           <label>
-            难度
-            <select
-              value={m.difficulty}
-              onChange={(e) =>
-                patch({ difficulty: e.target.value as Mistake["difficulty"] })
-              }
-            >
-              {Object.entries(difficulties).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <label>
-          题目标题 <small>选填</small>
-          <input
-            value={m.title}
-            maxLength={200}
-            onChange={(e) => patch({ title: e.target.value })}
-            placeholder="给这道题一个容易找到的名字"
-          />
-        </label>
-        <label>
-          题目内容 <small>文字和图片至少填写一项</small>
-          <textarea
-            value={m.content}
-            onChange={(e) => patch({ content: e.target.value })}
-            rows={4}
-            maxLength={1000000}
-            placeholder="输入题目，或在下方上传题目图片…"
-          />
-        </label>
-        <Upload
-          images={m.images}
-          onChange={(images) => patch({ images })}
-          onError={error}
-          onBusy={setUploading}
-        />
-        <Images
-          images={m.images}
-          onZoom={onZoom}
-          onRemove={(id) =>
-            patch({ images: m.images.filter((i) => i.id !== id) })
-          }
-        />
-        <div className="form-grid">
-          <label>
-            知识点
+            题目标题 <small>选填</small>
             <input
-              maxLength={10000}
-              value={points}
-              onChange={(e) => {
-                setPoints(e.target.value);
-                setDirty(true);
-              }}
-              placeholder="用逗号分隔，例如：函数，导数"
+              value={m.title}
+              maxLength={200}
+              onChange={(e) => patch({ title: e.target.value })}
+              placeholder="给这道题一个容易找到的名字"
             />
           </label>
           <label>
-            自定义标签
-            <input
-              maxLength={10000}
-              value={tags}
-              onChange={(e) => {
-                setTags(e.target.value);
-                setDirty(true);
-              }}
-              placeholder="用逗号分隔，例如：期中，易错"
-            />
-          </label>
-        </div>
-        <h3 className="form-section-title">答案与思考</h3>
-        {(["wrong", "correct", "explanation"] as const).map((key, i) => (
-          <label key={key}>
-            {["我的错误答案", "正确答案", "详细解析"][i]}
+            题目内容 <small>文字和图片至少填写一项</small>
             <textarea
+              value={m.content}
+              rows={6}
               maxLength={1000000}
-              rows={i === 2 ? 4 : 2}
-              value={m[key]}
-              onChange={(e) => patch({ [key]: e.target.value })}
+              onChange={(e) => patch({ content: e.target.value })}
+              placeholder="输入完整题目，保留公式与推导的换行…"
             />
           </label>
-        ))}
-        <label>
-          复习状态
-          <select
-            value={m.status}
-            onChange={(e) => patch({ status: e.target.value as Status })}
-          >
-            {Object.entries(statuses).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </label>
+        </section>
+        <section className="editor-section">
+          <h3>题目附件</h3>
+          <Upload
+            images={m.images}
+            onChange={(images) => patch({ images })}
+            onError={error}
+            onBusy={setUploading}
+          />
+          <Images
+            images={m.images}
+            onZoom={onZoom}
+            onRemove={(id) =>
+              patch({ images: m.images.filter((i) => i.id !== id) })
+            }
+          />
+        </section>
+        <section className="editor-section answer-editor">
+          <h3>答案与解析</h3>
+          {(["wrong", "correct", "explanation"] as const).map((key, i) => (
+            <label className={`answer-field ${key}`} key={key}>
+              {["我的错误答案", "正确答案", "详细解析"][i]}
+              <textarea
+                maxLength={1000000}
+                rows={i === 2 ? 5 : 3}
+                value={m[key]}
+                onChange={(e) => patch({ [key]: e.target.value })}
+                placeholder={
+                  [
+                    "记录当时的思路，找到出错的原因",
+                    "写下正确答案与关键步骤",
+                    "拆解推导过程，记录下次需要注意的地方",
+                  ][i]
+                }
+              />
+            </label>
+          ))}
+        </section>
+        <section className="editor-section">
+          <h3>整理与归类</h3>
+          <div className="form-grid">
+            <label>
+              知识点
+              <input
+                maxLength={10000}
+                value={points}
+                onChange={(e) => {
+                  setPoints(e.target.value);
+                  setDirty(true);
+                }}
+                placeholder="用逗号分隔，例如：函数，导数"
+              />
+            </label>
+            <label>
+              自定义标签
+              <input
+                maxLength={10000}
+                value={tags}
+                onChange={(e) => {
+                  setTags(e.target.value);
+                  setDirty(true);
+                }}
+                placeholder="用逗号分隔，例如：期中，易错"
+              />
+            </label>
+            <label>
+              难度
+              <select
+                value={m.difficulty}
+                onChange={(e) =>
+                  patch({ difficulty: e.target.value as Mistake["difficulty"] })
+                }
+              >
+                {Object.entries(difficulties).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              复习状态
+              <select
+                value={m.status}
+                onChange={(e) => patch({ status: e.target.value as Status })}
+              >
+                {Object.entries(statuses).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </section>
         {discard && (
           <div className="discard">
             <p>还有未保存的修改，确定放弃吗？</p>

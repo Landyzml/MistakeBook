@@ -1,4 +1,4 @@
-name: Deploy MistakeBook to GitHub Pages
+name: Deploy REWISE to GitHub Pages
 on:
   push:
     branches: [main]

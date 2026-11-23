@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X, ImagePlus, Trash2, ZoomIn } from "lucide-react";
 import { type Attachment, uid } from "./model";
 import { validImage } from "./backup";
+import { brandAsset } from "./brand";
 export function Modal({
   title,
   children,
@@ -207,10 +208,8 @@ export function Empty({
 }) {
   return (
     <div className="empty">
-      <div className="paper-mark">
-        <span />
-        <span />
-        <span />
+      <div className="empty-brand">
+        <img src={brandAsset("logo-icon.svg")} alt="" />
       </div>
       <h3>{title}</h3>
       <p>{description}</p>
