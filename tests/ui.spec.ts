@@ -123,13 +123,19 @@ test("完整录题、复习、备份、图片与响应布局", async ({ page }) 
   await expect(page.locator(".mistake-row")).toHaveCount(2);
   await page.locator(".mistake-row").last().click();
   await expect(page.locator(".image-tile img")).toHaveCount(2);
-  expect(
-    await page
-      .locator(".image-tile img")
-      .evaluateAll((imgs) =>
-        imgs.every((i) => (i as HTMLImageElement).naturalWidth > 0),
-      ),
-  ).toBeTruthy();
+  await expect
+    .poll(() =>
+      page
+        .locator(".image-tile img")
+        .evaluateAll((imgs) =>
+          imgs.every(
+            (i) =>
+              (i as HTMLImageElement).complete &&
+              (i as HTMLImageElement).naturalWidth > 0,
+          ),
+        ),
+    )
+    .toBeTruthy();
   await page.getByRole("button", { name: "放大 题图一.png" }).click();
   await expect(page.locator(".zoom img")).toBeVisible();
   await page
