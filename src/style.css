@@ -764,7 +764,7 @@ kbd {
   border-radius: var(--radius);
   overflow: hidden;
 }
-.mistake-row,
+.mistake-row-main,
 .mistake-list-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 105px 50px 76px 85px 14px;
@@ -779,38 +779,82 @@ kbd {
   color: var(--muted);
 }
 .mistake-row {
-  padding: 19px 20px;
-  text-align: left;
-  border: 0;
   border-bottom: 1px solid var(--border);
-  border-radius: 0;
-  background: transparent;
-  font-weight: 400;
 }
 .mistake-row:last-child {
   border-bottom: 0;
 }
-.mistake-row:hover {
+.mistake-row-main {
+  padding: 19px 20px;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-weight: 400;
+}
+.mistake-row-main:hover {
   background: var(--surface);
+}
+.mistake-row-main:focus-visible {
+  outline-offset: -3px;
 }
 .row-question {
   min-width: 0;
 }
 .row-title {
+  display: block;
   color: var(--ink);
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   font-weight: 500;
 }
-.row-question > p {
-  font-size: 12px;
+.is-compact .row-title,
+.row-excerpt {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.row-excerpt {
+  display: block;
+  font-size: 13px;
   margin-top: 6px;
   color: var(--muted);
+}
+.row-content,
+.row-image {
+  display: block;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.row-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+  color: var(--secondary-ink);
+  font-size: 14px;
+}
+.row-image {
+  width: 100%;
+}
+.mistake-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.row-image-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 20px 12px;
+  color: var(--secondary-ink);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.row-image-controls button:focus-visible {
+  outline-offset: 1px;
 }
 .row-tags {
   display: flex;
@@ -870,14 +914,8 @@ kbd {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.mistake-row > svg {
+.mistake-row-main > svg {
   color: var(--muted);
-}
-.attachment-count {
-  font-size: 11px;
-  color: var(--muted);
-  margin-left: 8px;
-  font-weight: 400;
 }
 .footer-note {
   display: flex;
@@ -1612,7 +1650,7 @@ kbd {
   .stats small {
     font-size: 11px;
   }
-  .mistake-row,
+  .mistake-row-main,
   .mistake-list-head {
     grid-template-columns: minmax(0, 1fr) 85px 43px 70px 72px 10px;
     gap: 10px;
@@ -1909,7 +1947,7 @@ kbd {
   .mistake-list-head {
     display: none;
   }
-  .mistake-row {
+  .mistake-row-main {
     grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 11px;
     padding: 17px 16px;
@@ -1920,7 +1958,7 @@ kbd {
   .row-title {
     font-size: 14px;
   }
-  .row-question > p {
+  .row-excerpt {
     font-size: 12px;
   }
   .row-tags span {
@@ -1946,8 +1984,15 @@ kbd {
     grid-row: 3;
     font-size: 11px;
   }
-  .mistake-row > svg {
+  .mistake-row-main > svg {
     display: none;
+  }
+  .row-image-controls {
+    padding-right: 16px;
+  }
+  .row-image-controls .icon {
+    width: 44px;
+    height: 44px;
   }
   .empty {
     padding: 29px 18px;
@@ -2179,7 +2224,6 @@ kbd {
 .stats > div > span,
 .subject-card p,
 .review-note p,
-.section-heading .text-btn,
-.row-question > p {
+.section-heading .text-btn {
   font-size: 13px;
 }

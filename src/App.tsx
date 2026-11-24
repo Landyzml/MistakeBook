@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { brandAsset } from "./brand";
+import { MistakeRow } from "./MistakeRow";
 import {
   LayoutDashboard,
   BookOpen,
@@ -527,7 +528,7 @@ export default function App() {
       </div>
     );
   }
-  function rows(ms: Mistake[]) {
+  function rows(ms: Mistake[], compact = false) {
     return (
       <div className="mistake-list">
         <div className="mistake-list-head">
@@ -538,43 +539,18 @@ export default function App() {
           <span>记录日期</span>
           <span />
         </div>
-        {ms.map((m) => {
-          const s = data.subjects.find((x) => x.id === m.subjectId);
-          return (
-            <button
-              className="mistake-row"
-              key={m.id}
-              onClick={() => setDetail(m.id)}
-            >
-              <div className="row-question">
-                <div className="row-title">
-                  {m.title || m.content.slice(0, 50) || "图片题目"}
-                  {m.images.length > 0 && (
-                    <span className="attachment-count">
-                      {m.images.length} 张图片
-                    </span>
-                  )}
-                </div>
-                <p>{m.content || "打开查看题目图片"}</p>
-                <div className="row-tags">
-                  {m.points.slice(0, 3).map((p) => (
-                    <span key={p}>{p}</span>
-                  ))}
-                </div>
-              </div>
-              <span className="subject-label">
-                <i style={{ background: s?.color }} />
-                {s?.name}
-              </span>
-              <span className={`difficulty ${m.difficulty}`}>
-                {difficulties[m.difficulty]}
-              </span>
-              <span className={`status ${m.status}`}>{statuses[m.status]}</span>
-              <span className="row-date">{date(m.createdAt)}</span>
-              <ChevronRight size={16} />
-            </button>
-          );
-        })}
+        {ms.map((mistake) => (
+          <MistakeRow
+            key={mistake.id}
+            mistake={mistake}
+            subject={data.subjects.find(
+              (subject) => subject.id === mistake.subjectId,
+            )}
+            compact={compact}
+            dateLabel={date(mistake.createdAt)}
+            onOpen={() => setDetail(mistake.id)}
+          />
+        ))}
       </div>
     );
   }
@@ -843,7 +819,7 @@ export default function App() {
                       </button>
                     </div>
                     {recent.length ? (
-                      rows(recent)
+                      rows(recent, true)
                     ) : (
                       <Empty
                         title="欢迎来到 REWISE"

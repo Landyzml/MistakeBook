@@ -79,9 +79,13 @@ export function Modal({
 export function Picture({
   attachment,
   onClick,
+  className,
+  loading,
 }: {
   attachment: Attachment;
   onClick?: () => void;
+  className?: string;
+  loading?: "lazy" | "eager";
 }) {
   const [url, setUrl] = useState("");
   const [bad, setBad] = useState(false);
@@ -97,6 +101,9 @@ export function Picture({
     <img
       src={url || undefined}
       alt={attachment.name}
+      className={className}
+      loading={loading}
+      decoding={loading === "lazy" ? "async" : undefined}
       onError={() => setBad(true)}
       onClick={onClick}
     />
